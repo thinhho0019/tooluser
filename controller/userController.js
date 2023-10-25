@@ -1,17 +1,23 @@
 const { use } = require('../router/userRoute');
-const conn = require('../util/db')
+const userService = require('../service/userService');
+const { trusted } = require('../util/db');
+const crypto = require('crypto');
 const userController = {
      loginUser :async (req,res)=>{
-        const {user,password}  = req.body;
-        console.log(user,password)
-        conn.query("select * from user where username = ?  and password = ?",[user,password],(err,result,fields)=>{
-            if(result.length == 0){
-                res.status(200).json({message:"NOMATCH"})
-            }else{
-                res.status(200).json({message:"MATCH"})
-            }
-            
-        })
+        try{
+            const {user,password}  = req.body;
+        var userE = crypto.createHash('md5').update(user ).digest('hex');
+        var passwordE = crypto.createHash('md5').update(password ).digest('hex');
+ 
+        if (await userService.loginUser(userE,passwordE) ){
+            res.status(200).json({message:"success"})
+        }else{
+            res.status(401).json({message:"no"})
+        }
+        }catch(ex){
+            console.log(ex)
+        }
+        
     }
 }
 module.exports = userController;
